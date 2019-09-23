@@ -403,17 +403,38 @@
     return myAction;
 }
 
+- (NSString *)hexadecimalStringFromData:(NSData *)data
+{
+    NSUInteger dataLength = data.length;
+    if (dataLength == 0) {
+        return nil;
+    }
+
+    const unsigned char *dataBuffer = data.bytes;
+    NSMutableString *hexString  = [NSMutableString stringWithCapacity:(dataLength * 2)];
+    for (int i = 0; i < dataLength; ++i) {
+        [hexString appendFormat:@"%02x", dataBuffer[i]];
+    }
+    return [hexString copy];
+}
+
 - (void)didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
     if (self.callbackId == nil) {
         NSLog(@"Unexpected call to didRegisterForRemoteNotificationsWithDeviceToken, ignoring: %@", deviceToken);
         return;
     }
     NSLog(@"Push Plugin register success: %@", deviceToken);
-
     NSMutableDictionary *results = [NSMutableDictionary dictionary];
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000
+    // [deviceToken description] is like "{length = 32, bytes = 0xd3d997af 967d1f43 b405374a 13394d2f ... 28f10282 14af515f }"
+    NSString *token = [self hexadecimalStringFromData:deviceToken];
+#else
+    
     NSString *token = [[[[deviceToken description] stringByReplacingOccurrencesOfString:@"<"withString:@""]
                         stringByReplacingOccurrencesOfString:@">" withString:@""]
                        stringByReplacingOccurrencesOfString: @" " withString: @""];
+#endif
+
     [results setValue:token forKey:@"deviceToken"];
 
 #if !TARGET_IPHONE_SIMULATOR

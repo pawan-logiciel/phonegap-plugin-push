@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -361,8 +362,19 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     String appName = getAppName(this);
     String packageName = context.getPackageName();
     Resources resources = context.getResources();
+  
+    // int notId = parseInt(NOT_ID, extras);
+    
+    /*
+     * Earlier code always sent notification id => `0`
+     * which was causing notification to overwrite.
+     * 
+     * Now Added timestamp which will set different id for each notification.
+     * Hence it will prevent notifications from being overwritten.
+     */
+    Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+    int notId = (int) timestamp.getTime();
 
-    int notId = parseInt(NOT_ID, extras);
     Intent notificationIntent = new Intent(this, PushHandlerActivity.class);
     notificationIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
     notificationIntent.putExtra(PUSH_BUNDLE, extras);
